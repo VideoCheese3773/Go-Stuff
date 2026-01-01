@@ -53,9 +53,9 @@ func TLSSecurityCheck(url string, email string) (*Host, error) { // First reques
 	req.Header.Add("email", email) //Appending email in header of request
 
 	//Using client to send the request
-	client := &http.Client{Timeout: 120000} //Setting timeout to 120 seconds
-	resp, err := client.Do(req)             //Making the API call
-	if err != nil {                         //Again checking for errors
+	client := &http.Client{Timeout: 120 * time.Second} //Setting timeout to 120 seconds
+	resp, err := client.Do(req)                        //Making the API call
+	if err != nil {                                    //Again checking for errors
 		return nil, fmt.Errorf("couldn't make the request: %v", err)
 	}
 	defer resp.Body.Close() //Defer waits until the whole func ends so the body gets closed
@@ -86,7 +86,7 @@ func pollResult(url string, email string) (*Host, error) { // Checks if request 
 		}
 		req.Header.Add("email", email)
 
-		client := &http.Client{Timeout: 30000}
+		client := &http.Client{Timeout: 30 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't make the poll request: %v", err)
@@ -130,10 +130,6 @@ func main() {
 	var email string // saving email registered in API
 	fmt.Println("Please write a registered e-mail in the API")
 	fmt.Scan(&email)
-
-	if url == "a" {
-		url = "www.google.com" // This whole if section is just a placeholder url to test if the API call works
-	}
 
 	host, err := TLSSecurityCheck(url, email)
 	if err != nil {
