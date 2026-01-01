@@ -44,7 +44,7 @@ func TLSSecurityCheck(url string, email string) (*Host, error) { // First reques
 
 	//startNew starts an assesment, all=done only returns info when assesment is done
 	var startUrl = apiUrl + analyzeUrl + url + newRequestUrl
-	fmt.Println("URL for API:", startUrl)
+	fmt.Println("\n URL for API:", startUrl)
 
 	req, err := http.NewRequest("GET", startUrl, nil) //Can't use http.Get because we need to append the registered email
 	if err != nil {                                   // This is to make sure there are no errors in getting stuff from the API, nil is the go version of null btw
@@ -99,14 +99,21 @@ func pollResult(url string, email string) (*Host, error) { // Checks if request 
 		}
 		resp.Body.Close() // Basically same thing as above to check the result of the API call
 
-		fmt.Println("Request Status:", host.Status)
+		fmt.Println("\n Request Status:", host.Status)
 
 		if host.Status == "READY" || host.Status == "ERROR" { // Checking the status of the request
 			return &host, nil
 		}
 
 		cycles++
-		fmt.Printf("Current time: %s, Cycle No: %d\n", time.Now().Format("15:04:05"), cycles)
+		fmt.Printf("Current time: %s, Cycle No: %d \n", time.Now().Format("15:04:05"), cycles)
+
+		if len(host.Endpoints) > 0 { // checks if there are endpoints
+			for i, endpoint := range host.Endpoints {
+				fmt.Printf("Endpoint %d: %s \n", i+1, endpoint.StatusMessage) // shows progress of each endpoint
+			}
+		}
+
 		if host.Status == "DNS" || host.Status == "IN_PROGRESS" {
 			fmt.Println("Waiting 15 seconds before checking again...")
 			time.Sleep(15 * time.Second)
@@ -115,8 +122,8 @@ func pollResult(url string, email string) (*Host, error) { // Checks if request 
 			time.Sleep(30 * time.Second)
 		}
 
-		if cycles > 40 { // so that it doesn't run forever
-			return nil, fmt.Errorf("Timeout after 40 cycles")
+		if cycles > 60 { // so that it doesn't run forever
+			return nil, fmt.Errorf("Timeout after 60 cycles")
 		}
 
 	}
@@ -124,11 +131,11 @@ func pollResult(url string, email string) (*Host, error) { // Checks if request 
 
 func main() {
 	var url string // saving url to check
-	fmt.Println("Please write the URL to check their TLS Security")
+	fmt.Println("\n Please write the URL to check their TLS Security")
 	fmt.Scan(&url) // This is how you save inputs from the console to a variable
 
 	var email string // saving email registered in API
-	fmt.Println("Please write a registered e-mail in the API")
+	fmt.Println("\n Please write a registered e-mail in the API")
 	fmt.Scan(&email)
 
 	host, err := TLSSecurityCheck(url, email)
@@ -137,19 +144,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Test results")
+	fmt.Println("\n Test results")
 	fmt.Println("Host:", host.Host)
 	fmt.Println("Status:", host.Status)
 
 	if len(host.Endpoints) > 0 {
 		fmt.Println("Endpoints:")
 		for i, endpoint := range host.Endpoints {
-			fmt.Printf("Endpoint %d", i+1)
-			fmt.Printf("IP Address: %s", endpoint.IPAddress)
-			fmt.Printf("Server Name: %s", endpoint.ServerName)
-			fmt.Printf("Grade: %s", endpoint.Grade)
-			fmt.Printf("Status: %s", endpoint.StatusMessage)
-			fmt.Printf("Has Warnings: %v", endpoint.HasWarnings)
+			fmt.Printf("\n Endpoint %d \n", i+1)
+			fmt.Printf("IP Address: %s \n", endpoint.IPAddress)
+			fmt.Printf("Server Name: %s \n", endpoint.ServerName)
+			fmt.Printf("TLS Security Grade: %s \n", endpoint.Grade)
+			fmt.Printf("Status: %s \n", endpoint.StatusMessage)
+			fmt.Printf("Has Warnings: %v \n", endpoint.HasWarnings)
 		}
 	} else {
 		fmt.Println("No endpoints found")
